@@ -1,0 +1,26 @@
+{{- if .Values.magellanicFrontend.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "magellanic.fullname" . }}-web-core
+spec:
+  replicas: {{ .Values.magellanicFrontend.replicas }}
+  selector:
+    matchLabels: {{ toYaml .Values.magellanicFrontend.labels | nindent 8 }}
+  template:
+    metadata:
+      labels: {{ toYaml .Values.magellanicFrontend.labels | nindent 8 }}
+    spec:
+      restartPolicy: {{ .Values.magellanicFrontend.restartPolicy }}
+      serviceAccountName: {{ template "magellanic.fullname" . }}-core-sa
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: {{ template "magellanic.fullname" . }}-web-panel
+          image: "{{ .Values.imageRegistry }}/{{ .Values.magellanicFrontend.image.name }}:{{ .Values.magellanicFrontend.image.tag }}"
+          imagePullPolicy: "{{ .Values.magellanicFrontend.image.pullPolicy }}"
+          env: {{ toYaml .Values.magellanicFrontend.customEnv | nindent 12 }}
+{{- end }}

@@ -1,0 +1,26 @@
+{{- if .Values.magellanicAdmin.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "magellanic.fullname" . }}-admin-core
+spec:
+  replicas: {{ .Values.magellanicAdmin.replicas }}
+  selector:
+    matchLabels: {{ toYaml .Values.magellanicAdmin.labels | nindent 8 }}
+  template:
+    metadata:
+      labels: {{ toYaml .Values.magellanicAdmin.labels | nindent 8 }}
+    spec:
+      restartPolicy: {{ .Values.magellanicAdmin.restartPolicy }}
+      serviceAccountName: {{ template "magellanic.fullname" . }}-core-sa
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: {{ template "magellanic.fullname" . }}-web-admin
+          image: "{{ .Values.imageRegistry }}/{{ .Values.magellanicAdmin.image.name }}:{{ .Values.magellanicAdmin.image.tag }}"
+          imagePullPolicy: "{{ .Values.magellanicAdmin.image.pullPolicy }}"
+          env: {{ toYaml .Values.magellanicAdmin.customEnv | nindent 12 }}
+{{- end }}

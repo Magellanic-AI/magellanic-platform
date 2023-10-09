@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "magellanic.fullname" . }}-core
+spec:
+  replicas: {{ .Values.magellanic.replicas }}
+  selector:
+    matchLabels: {{ toYaml .Values.magellanic.labels | nindent 8 }}
+  template:
+    metadata:
+      labels: {{ toYaml .Values.magellanic.labels | nindent 8 }}
+    spec:
+      restartPolicy: {{ .Values.magellanic.restartPolicy }}
+      serviceAccountName: {{ template "magellanic.fullname" . }}-core-sa
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: {{ template "magellanic.fullname" . }}-core
+          image: "{{ .Values.imageRegistry }}/{{ .Values.magellanic.image.name }}:{{ .Values.magellanic.image.tag }}"
+          imagePullPolicy: "{{ .Values.magellanic.image.pullPolicy }}"
+          env: {{ toYaml .Values.magellanic.customEnv | nindent 12 }}
+        {{- if .Values.magellanic.volumeMounts }}
+          volumeMounts:
+            {{ toYaml .Values.magellanic.volumeMounts | nindent 16 }}
+        {{- end }}
+      {{- if .Values.magellanic.volumes }}
+      volumes:
+        {{ toYaml .Values.magellanic.volumes | nindent 12 }}
+      {{- end }}

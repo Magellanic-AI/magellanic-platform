@@ -1,0 +1,30 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "magellanic.fullname" . }}-migration
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels: {{ toYaml .Values.magellanic.labels | nindent 8 }}
+    spec:
+      restartPolicy: {{ .Values.magellanic.jobRestartPolicy }}
+      serviceAccountName: {{ template "magellanic.fullname" . }}-core-sa
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: {{ template "magellanic.fullname" . }}-core
+          image: "{{ .Values.imageRegistry }}/{{ .Values.magellanic.image.name }}:{{ .Values.magellanic.image.tag }}"
+          imagePullPolicy: "{{ .Values.magellanic.image.pullPolicy }}"
+          env: {{ toYaml .Values.magellanic.customEnv | nindent 12 }}
+          command: [ "/bin/sh", "-c" ]
+          args:
+            - |
+              sleep 30
+              ./init.sh

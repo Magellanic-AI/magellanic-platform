@@ -1,0 +1,9 @@
+Magellanic Platform is deployed!
+
+You can access platform via:
+{{- range .Values.ingress.hosts }}
+          {{- range .http.paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,19 @@
+{{- if .Values.magellanicFrontend.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "magellanic.fullname" . }}-web-service
+spec:
+  ports:
+    {{- range .Values.magellanic.services }}
+    - port: {{ .servicePort }}
+      name: {{ .name }}
+      protocol: {{ .protocol }}
+      targetPort: {{ .targetPort }}
+    {{- end }}
+  selector:
+    app: {{ template "magellanic.name" . }}-web-core
+  sessionAffinity: {{ .Values.magellanic.sessionAffinity }}
+  type: {{ .Values.magellanic.type }}
+{{- end }}

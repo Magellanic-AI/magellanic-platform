@@ -1,0 +1,30 @@
+apiVersion: v2
+name: magellanic-core
+appVersion: 1.2.0
+description: Magellanic is IAM for Workloads and Config Manager with Just-in-time Access.
+version: 1.2.0
+keywords:
+  - magellanic
+  - dlt
+  - security
+home: https://www.magellanic.ai
+sources:
+  - https://www.magellanic.space
+icon: http://www.magellanic.space
+maintainers:
+  - name: magellanic
+    email: contact@magellanic.ai
+type: application
+dependencies:
+  - name: neo4j
+    repository: https://helm.neo4j.com/neo4j
+    version: "5.10.0"
+    condition: neo4j.enabled
+  - name: postgresql
+    version: "13.1.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: metadata.enabled
+  - name: redis
+    version: "18.1.2"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled

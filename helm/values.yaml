@@ -1,0 +1,251 @@
+imageRegistry: ""
+imagePullSecrets: ""
+nameOverride: ""
+fullnameOverride: ""
+
+ingress:
+  name: magellanic-ingress
+  enabled: false
+  class: ""
+  annotations: []
+  hosts: []
+  ##  - host: api.magellanic.ai
+  ##    http:
+  ##      paths:
+  ##        - path: /
+  ##          pathType: Prefix
+  ##          backend:
+  ##            service:
+  ##              name: magellanic-service
+  ##              port:
+  ##                number: 3000
+
+magellanic:
+  replicas: 1
+  restartPolicy: "Always"
+  jobRestartPolicy: "OnFailure"
+  labels:
+    app: "magellanic-core"
+    env: "prod"
+  image:
+    name: "magellanic-backend"
+    tag: "1.2.0"
+    pullPolicy: "Always"
+  podAnnotations: {}
+  podLabels: {}
+  volumes: {}
+  volumeMounts: {}
+  serviceAccount: {}
+  customEnv:
+    - name: PORT
+      value: "3000"
+    - name: TZ
+      value: "UTC"
+    - name: FRONT_URL
+      value: ""
+    - name: MFA_RELYING_PARTY_ID
+      value: magellanic.ai
+    - name: SQL_HOST
+      value: ""
+    - name: SQL_PORT
+      value: ""
+    - name: SQL_DBNAME
+      value: ""
+    - name: SQL_USERNAME
+      value: ""
+    - name: SQL_USE_SSL
+      value: ""
+    - name: SQL_CERT_PATH
+      value: ""
+    - name: SQL_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: SQL_PASSWORD
+    - name: NEO4J_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: NEO4J_PASSWORD
+    - name: AUTH_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: AUTH_SECRET
+    - name: ACCESS_TOKEN_EXPIRES_IN
+      value: "600"
+    - name: REFRESH_TOKEN_EXPIRES_IN
+      value: "86400"
+    - name: MFA_RELYING_PARTY
+      value: "Magellanic"
+    - name: MFA_RELYING_PARTY_ID
+      value: "magellanic.ai"
+    - name: REDIS_HOST
+      value: ""
+    - name: REDIS_PORT
+      value: ""
+    - name: SUBDOMAIN_WEBHOOK_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: SUBDOMAIN_WEBHOOK_API_KEY
+    - name: MAGELLANIC_DOMAIN
+      value: "magellanic.ai"
+    - name: MAGELLANIC_ADMIN_URL
+      value: ""
+    - name: MAILER_HOST
+      value: ""
+    - name: MAILER_PORT
+      value: ""
+    - name: MAILER_USER
+      value: ""
+    - name: MAILER_TLS
+      value: ""
+    - name: MAILER_SECURE
+      value: ""
+    - name: MAILER_PASS
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: MAILER_PASS
+    - name: AES_KEY
+      valueFrom:
+        secretKeyRef:
+          name: credentials
+          key: AES_KEY
+  services:
+    - name: core
+      servicePort: 3000
+      targetPort: 3000
+      protocol: TCP
+  sessionAffinity: None
+  type: ClusterIP
+
+magellanicFrontend:
+  enabled: true
+  replicas: 1
+  image:
+    name: "magellanic-frontend"
+    tag: "1.1.1"
+    pullPolicy: "IfNotPresent"
+  labels:
+    app: "magellanic-web-core"
+    env: "prod"
+  customEnv:
+    - name: PORT
+      value: "3000"
+    - name: API_URL
+      value: ""
+    - name: WS_URL
+      value: ""
+  services:
+    - name: web
+      servicePort: 3000
+      targetPort: 3000
+      protocol: TCP
+  sessionAffinity: None
+  type: ClusterIP
+
+magellanicAdmin:
+  enabled: true
+  replicas: 1
+  image:
+    name: "magellanic-admin"
+    tag: "0.9.2"
+    pullPolicy: "IfNotPresent"
+  labels:
+    app: "magellanic-admin-core"
+    env: "prod"
+  customEnv:
+    - name: PORT
+      value: "3000"
+    - name: API_URL
+      value: ""
+  services:
+    - name: web
+      servicePort: 3000
+      targetPort: 3000
+      protocol: TCP
+  sessionAffinity: None
+  type: ClusterIP
+
+guacd:
+  enabled: false
+  replicaCount: 1
+
+  guacd:
+    image:
+      repository: "magellanic-services"
+      tag: "mgld-15.3"
+      pullPolicy: IfNotPresent
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  serviceAccount:
+    create: false
+    name: ""
+
+  podSecurityContext:
+    fsGroup: 2000
+
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: false
+  resources: {}
+  ##  limits:
+  ##    cpu: 2000m
+  ##    memory: 4196Mi
+  ##  requests:
+  ##    cpu: 500m
+  ##    memory: 1024Mi
+
+  nodeSelector: []
+  ##  app: magellanic
+
+  tolerations: []
+
+  affinity: {}
+
+  postgres:
+    hostname: ""
+    port: ""
+    database: ""
+    user: ""
+    password: ""
+
+persistence:
+  enabled: false
+  existingClaim: ""
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 20Gi
+  selector: {}
+
+## Docs: https://github.com/neo4j/helm-charts
+neo4j:
+  enabled: false
+  values: {}
+
+## Docs: https://github.com/bitnami/charts/tree/main/bitnami/redis
+redis:
+  enabled: false
+  values: {}
+
+## Docs: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/README.md
+metadata:
+  enabled: false
+  values: {}

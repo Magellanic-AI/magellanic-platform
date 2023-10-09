@@ -1,0 +1,72 @@
+{{- if .Values.guacd.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "guacamole.fullname" . }}-guacd
+  labels:
+  {{ include "guacamole.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.guacd.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "guacamole.name" . }}-guacd
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "guacamole.name" . }}-guacd
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.guacd.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ template "guacamole.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.guacd.securityContext | nindent 12 }}
+          image: "{{ .Values.imageRegistry }}/{{ .Values.guacd.guacd.image.name }}:{{ tpl .Values.guacd.guacd.image.tag . }}"
+          imagePullPolicy: {{ .Values.guacd.guacd.image.pullPolicy }}
+          ports:
+            - name: guacd
+              containerPort: 4822
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.guacd.resources | nindent 12 }}
+      {{- with .Values.guacd.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.guacd.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.guacd.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "guacamole.fullname" . }}-remote
+  labels:
+    {{ include "guacamole.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.guacd.service.type }}
+  ports:
+    - port: 4822
+      targetPort: guacd
+      protocol: TCP
+      name: guacd
+  selector:
+    app.kubernetes.io/name: {{ include "guacamole.name" . }}-guacd
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ template "guacamole.serviceAccountName" . }}
+  labels:
+    {{ include "guacamole.labels" . | indent 6 }}
+{{- end }}
