@@ -21,6 +21,10 @@ spec:
       securityContext:
         {{- toYaml .Values.guacd.podSecurityContext | nindent 8 }}
       serviceAccountName: {{ template "guacamole.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 12 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

@@ -1,15 +1,43 @@
+## @section Global values
+## @param imageRegistry Image registry for all images
+##
 imageRegistry: ""
+## @param imagePullSecrets Name of Kubernetes secret to use as credentials to Docker Registry
+##
 imagePullSecrets: ""
+## @param nameOverride String to partially override template (will maintain the release name)
+##
 nameOverride: ""
+## @param fullnameOverride String to fully override template
+##
 fullnameOverride: ""
 
+## @section Ingress"
 ingress:
+  ## @param ingress.name Name of the Ingress
+  ##
   name: magellanic-ingress
+  ## @param ingress.enabled Enable or Disable Ingress
+  ##
   enabled: false
+  ## @param ingress.class IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
+  ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
+  ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
+  ##
   class: ""
-  annotations: []
+  ## @param ingress.annotations [object] Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## Use this parameter to set the required annotations for cert-manager, see
+  ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
+  ## e.g:
+  ## annotations:
+  ##   kubernetes.io/ingress.class: nginx
+  ##   cert-manager.io/cluster-issuer: cluster-issuer-name
+  ##
+  annotations: {}
+  ## @param ingress.hosts An array with hostname(s) to be covered with the ingress record
+  ##
   hosts: []
-  ##  - host: api.magellanic.ai
+  ##  - host: api.changeme.com
   ##    http:
   ##      paths:
   ##        - path: /
@@ -20,232 +48,416 @@ ingress:
   ##              port:
   ##                number: 3000
 
+## @section Magellanic Core
 magellanic:
+  ## @param magellanic.replicas Number of Magellanic Core replicas
+  ##
   replicas: 1
+  ## @param magellanic.restartPolicy Restart policy for Magellanic Core
+  ##
   restartPolicy: "Always"
+  ## @param magellanic.jobRestartPolicy Restart strategy for init and migration job
+  ##
   jobRestartPolicy: "OnFailure"
+  ## Add extra labels to the Magellanic Core
+  ##
   labels:
+    ## @param magellanic.labels.app App name of Magellanic Core
+    ##
     app: "magellanic-core"
+    ## @param magellanic.labels.env Environment name of Magellanic Core
+    ##
     env: "prod"
+  ## Add image details to the Magellanic Core
+  ##
   image:
+    ## @param magellanic.image.name Name of the image in the registry
+    ##
     name: "magellanic-backend"
+    ## @param magellanic.image.tag Tag of the image
+    ##
     tag: "1.2.0"
+    ## @param magellanic.image.pullPolicy Init container load-dags image pull policy
+    ##
     pullPolicy: "Always"
+  ## @param magellanic.podAnnotations Add extra annotations to the pods
+  ##
   podAnnotations: {}
+  ## @param magellanic.podLabels Add extra labels to the pods
+  ##
   podLabels: {}
+  ## @param magellanic.volumes Optionally specify extra list of additional volumes for the Magellanic Core
+  ##
   volumes: {}
+  ## @param magellanic.volumeMounts Optionally specify extra list of additional volumeMounts for the Magellanic Core
+  ##
   volumeMounts: {}
-  serviceAccount: {}
-  customEnv:
-    - name: PORT
-      value: "3000"
-    - name: TZ
-      value: "UTC"
-    - name: FRONT_URL
-      value: ""
-    - name: MFA_RELYING_PARTY_ID
-      value: magellanic.ai
-    - name: SQL_HOST
-      value: ""
-    - name: SQL_PORT
-      value: ""
-    - name: SQL_DBNAME
-      value: ""
-    - name: SQL_USERNAME
-      value: ""
-    - name: SQL_USE_SSL
-      value: ""
-    - name: SQL_CERT_PATH
-      value: ""
-    - name: SQL_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: credentials
-          key: SQL_PASSWORD
-    - name: NEO4J_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: credentials
-          key: NEO4J_PASSWORD
-    - name: AUTH_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: credentials
-          key: AUTH_SECRET
-    - name: ACCESS_TOKEN_EXPIRES_IN
-      value: "600"
-    - name: REFRESH_TOKEN_EXPIRES_IN
-      value: "86400"
-    - name: MFA_RELYING_PARTY
-      value: "Magellanic"
-    - name: MFA_RELYING_PARTY_ID
-      value: "magellanic.ai"
-    - name: REDIS_HOST
-      value: ""
-    - name: REDIS_PORT
-      value: ""
-    - name: SUBDOMAIN_WEBHOOK_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: credentials
-          key: SUBDOMAIN_WEBHOOK_API_KEY
-    - name: MAGELLANIC_DOMAIN
-      value: "magellanic.ai"
-    - name: MAGELLANIC_ADMIN_URL
-      value: ""
-    - name: MAILER_HOST
-      value: ""
-    - name: MAILER_PORT
-      value: ""
-    - name: MAILER_USER
-      value: ""
-    - name: MAILER_TLS
-      value: ""
-    - name: MAILER_SECURE
-      value: ""
-    - name: MAILER_PASS
-      valueFrom:
-        secretKeyRef:
-          name: credentials
-          key: MAILER_PASS
-    - name: AES_KEY
-      valueFrom:
-        secretKeyRef:
-          name: credentials
-          key: AES_KEY
-  services:
-    - name: core
-      servicePort: 3000
-      targetPort: 3000
-      protocol: TCP
+  ## Service account for Magellanic pods to use.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  ##
+  serviceAccount:
+    ## @param magellanic.serviceAccount.enabled Enable creation of ServiceAccount
+    ##
+    enabled: false
+    ## @param magellanic.serviceAccount.annotations Additional custom annotations for the ServiceAccount
+    ##
+    annotations: {}
+  ## @param magellanic.customEnv Environment Variables for Magellanic Core
+  ##
+  customEnv: []
+  ##    - name: PORT
+  ##      value: "3000"
+  ##    - name: TZ
+  ##      value: "UTC"
+  ##    - name: FRONT_URL
+  ##      value: ""
+  ##    - name: MFA_RELYING_PARTY_ID
+  ##      value: magellanic.ai
+  ##    - name: SQL_HOST
+  ##      value: ""
+  ##    - name: SQL_PORT
+  ##      value: ""
+  ##    - name: SQL_DBNAME
+  ##      value: ""
+  ##    - name: SQL_USERNAME
+  ##      value: ""
+  ##    - name: SQL_USE_SSL
+  ##      value: ""
+  ##    - name: SQL_CERT_PATH
+  ##      value: ""
+  ##    - name: SQL_PASSWORD
+  ##      valueFrom:
+  ##        secretKeyRef:
+  ##          name: credentials
+  ##          key: SQL_PASSWORD
+  ##    - name: NEO4J_PASSWORD
+  ##      valueFrom:
+  ##        secretKeyRef:
+  ##          name: credentials
+  ##          key: NEO4J_PASSWORD
+  ##    - name: AUTH_SECRET
+  ##      valueFrom:
+  ##        secretKeyRef:
+  ##          name: credentials
+  ##          key: AUTH_SECRET
+  ##    - name: ACCESS_TOKEN_EXPIRES_IN
+  ##      value: "600"
+  ##    - name: REFRESH_TOKEN_EXPIRES_IN
+  ##      value: "86400"
+  ##    - name: MFA_RELYING_PARTY
+  ##      value: "Magellanic"
+  ##    - name: MFA_RELYING_PARTY_ID
+  ##      value: "magellanic.ai"
+  ##    - name: REDIS_HOST
+  ##      value: ""
+  ##    - name: REDIS_PORT
+  ##      value: ""
+  ##    - name: SUBDOMAIN_WEBHOOK_API_KEY
+  ##      valueFrom:
+  ##        secretKeyRef:
+  ##          name: credentials
+  ##          key: SUBDOMAIN_WEBHOOK_API_KEY
+  ##    - name: MAGELLANIC_DOMAIN
+  ##      value: "magellanic.ai"
+  ##    - name: MAGELLANIC_ADMIN_URL
+  ##      value: ""
+  ##    - name: MAILER_HOST
+  ##      value: ""
+  ##    - name: MAILER_PORT
+  ##      value: ""
+  ##    - name: MAILER_USER
+  ##      value: ""
+  ##    - name: MAILER_TLS
+  ##      value: ""
+  ##    - name: MAILER_SECURE
+  ##      value: ""
+  ##    - name: MAILER_PASS
+  ##      valueFrom:
+  ##        secretKeyRef:
+  ##          name: credentials
+  ##          key: MAILER_PASS
+  ##    - name: AES_KEY
+  ##      valueFrom:
+  ##        secretKeyRef:
+  ##          name: credentials
+  ##          key: AES_KEY
+  ## @param magellanic.services Primary service configuration
+  ##
+  services: []
+  ##  - name: core
+  ##    servicePort: 3000
+  ##    targetPort: 3000
+  ##    protocol: TCP
+  ##
+  ## @param magellanic.sessionAffinity Session Affinity for Kubernetes service, can be "None" or "ClientIP"
+  ## If "ClientIP", consecutive client requests will be directed to the same Pod
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+  ##
   sessionAffinity: None
+  ## @param magellanic.type Kubernetes Service type
+  ##
   type: ClusterIP
 
 magellanicFrontend:
+  ## @param magellanicFrontend.enabled Enable Magellanic Web Panel
+  ##
   enabled: true
+  ## @param magellanicFrontend.replicas Number of Magellanic Web Panel replicas
+  ##
   replicas: 1
+  ## Add image details to the Magellanic Web Panel
+  ##
   image:
+    ## @param magellanicFrontend.image.name Name of the image in the registry
+    ##
     name: "magellanic-frontend"
+    ## @param magellanicFrontend.image.tag Tag of the image
+    ##
     tag: "1.1.1"
+    ## @param magellanicFrontend.image.pullPolicy Init container load-dags image pull policy
+    ##
     pullPolicy: "IfNotPresent"
+  ## Add extra labels to the Magellanic Web Panel
+  ##
   labels:
+    ## @param magellanicFrontend.labels.app App name of Magellanic Web Panel
+    ##
     app: "magellanic-web-core"
+    ## @param magellanicFrontend.labels.env Environment name of Magellanic Web Panel
+    ##
     env: "prod"
-  customEnv:
-    - name: PORT
-      value: "3000"
-    - name: API_URL
-      value: ""
-    - name: WS_URL
-      value: ""
-  services:
-    - name: web
-      servicePort: 3000
-      targetPort: 3000
-      protocol: TCP
+  ## @param magellanicFrontend.customEnv Environment Variables for Magellanic Web Panel
+  ##
+  customEnv: []
+  ##    - name: PORT
+  ##      value: "3000"
+  ##    - name: API_URL
+  ##      value: ""
+  ##    - name: WS_URL
+  ##      value: ""
+  ## @param magellanicFrontend.services Primary service configuration for Magellanic Web Panel
+  ##
+  services: []
+  ##  - name: web
+  ##    servicePort: 3000
+  ##    targetPort: 3000
+  ##    protocol: TCP
+  ##
+  ## @param magellanicFrontend.sessionAffinity Session Affinity for Kubernetes service, can be "None" or "ClientIP"
+  ## If "ClientIP", consecutive client requests will be directed to the same Pod
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+  ##
   sessionAffinity: None
+  ## @param magellanicFrontend.type Kubernetes Service type
+  ##
   type: ClusterIP
 
+## @section Magellanic Admin
 magellanicAdmin:
+  ## @param magellanicAdmin.enabled Enable Magellanic Admin
+  ##
   enabled: true
+  ## @param magellanicAdmin.replicas Number of Magellanic Admin replicas
+  ##
   replicas: 1
+  ## Add image details to the Magellanic Core
+  ##
   image:
+    ## @param magellanicAdmin.image.name Name of the image in the registry
+    ##
     name: "magellanic-admin"
+    ## @param magellanicAdmin.image.tag Tag of the image
+    ##
     tag: "0.9.2"
+    ## @param magellanicAdmin.image.pullPolicy Init container load-dags image pull policy
+    ##
     pullPolicy: "IfNotPresent"
+  ## Add extra labels to the Magellanic Web Panel
+  ##
   labels:
-    app: "magellanic-admin-core"
+    ## @param magellanicAdmin.labels.app App name of Magellanic Web Panel
+    ##
+    app: "magellanic-web-core"
+    ## @param magellanicAdmin.labels.env Environment name of Magellanic Web Panel
+    ##
     env: "prod"
-  customEnv:
-    - name: PORT
-      value: "3000"
-    - name: API_URL
-      value: ""
-  services:
-    - name: web
-      servicePort: 3000
-      targetPort: 3000
-      protocol: TCP
+  ## @param magellanicAdmin.customEnv Environment Variables for Magellanic Web Panel
+  ##
+  customEnv: []
+  ##    - name: PORT
+  ##      value: "3000"
+  ##    - name: API_URL
+  ##      value: ""
+  ## @param magellanicAdmin.services Primary service configuration for Magellanic Admin
+  ##
+  services: []
+  ##  - name: admin
+  ##    servicePort: 3000
+  ##    targetPort: 3000
+  ##    protocol: TCP
+  ##
+  ## @param magellanicAdmin.sessionAffinity Session Affinity for Kubernetes service, can be "None" or "ClientIP"
+  ## If "ClientIP", consecutive client requests will be directed to the same Pod
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+  ##
   sessionAffinity: None
+  ## @param magellanicAdmin.type Kubernetes Service type
+  ##
   type: ClusterIP
 
+## @section Magellanic Remote
 guacd:
+  ## @param guacd.enabled Enable remote access with Magellanic
+  ##
   enabled: false
+  ## @param guacd.replicaCount Number of Magellanic Remote replicas
+  ##
   replicaCount: 1
 
+  ## Details of the image
+  ##
   guacd:
     image:
+      ## @param guacd.guacd.image.repository Number of Magellanic Remote replicas
+      ##
       repository: "magellanic-services"
+      ## @param guacd.guacd.image.tag Number of Magellanic Remote replicas
+      ##
       tag: "mgld-15.3"
+      ## @param guacd.guacd.image.pullPolicy Number of Magellanic Remote replicas
+      ##
       pullPolicy: IfNotPresent
 
-  imagePullSecrets: []
-  nameOverride: ""
-  fullnameOverride: ""
-
+  ## Service Account for remote access
+  ##
   serviceAccount:
+    ## @param guacd.serviceAccount.create Create Service Account
+    ##
     create: false
+    ## @param guacd.serviceAccount.name Name of Service Account
+    ##
     name: ""
 
+  ## Enable pod security context
+  ##
   podSecurityContext:
+    ## @param guacd.podSecurityContext.fsGroup Group ID for the pod
+    ##
     fsGroup: 2000
 
-  securityContext:
-    capabilities:
-      drop:
-      - ALL
-    readOnlyRootFilesystem: true
-    runAsNonRoot: true
-    runAsUser: 1000
+  ## @param guacd.securityContext Enable security context
+  ##
+  securityContext: {}
+  ##  capabilities:
+  ##    drop:
+  ##    - ALL
+  ##  readOnlyRootFilesystem: true
+  ##  runAsNonRoot: true
+  ##  runAsUser: 1000
 
+  ## Local service for remote access
+  ##
   service:
+    ## @param guacd.service.type Kubernetes Service type
+    ##
     type: ClusterIP
+    ## @param guacd.service.port Kubernetes Service port
+    ##
     port: 80
 
-  ingress:
-    enabled: false
-  resources: {}
-  ##  limits:
+  ## Resource requests and limits
+  ## ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources:
+    ## @param guacd.resources.limits resource limits
+    ## ref: https://kubernetes.io/docs/user-guide/compute-resources/
+    ##
+    limits: {}
   ##    cpu: 2000m
   ##    memory: 4196Mi
-  ##  requests:
+    ## @param guacd.resources.requests resource requests
+    ## ref: https://kubernetes.io/docs/user-guide/compute-resources/
+    ##
+    requests: {}
   ##    cpu: 500m
   ##    memory: 1024Mi
 
+  ## @param guacd.nodeSelector Node labels for pods assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
   nodeSelector: []
-  ##  app: magellanic
 
+  ## @param guacd.tolerations Tolerations for pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
   tolerations: []
 
+  ## @param guacd.affinity Affinity for pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ## Note: primary.podAffinityPreset, primary.podAntiAffinityPreset, and primary.nodeAffinityPreset will be ignored when it's set
+  ##
   affinity: {}
 
-  postgres:
-    hostname: ""
-    port: ""
-    database: ""
-    user: ""
-    password: ""
-
+## @section Magellanic Persistence Volume for Ledger
+##
 persistence:
+  ## @param persistence.enabled Create volume for Magellanic
+  ##
   enabled: false
+  ## @param persistence.existingClaim Name of an existing PVC to use
+  ##
   existingClaim: ""
+  ## @param persistence.storageClass PVC Storage Class for Magellanic
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
   storageClass: ""
+  ## @param persistence.accessModes PVC Access Mode
+  ##
   accessModes:
     - ReadWriteOnce
+  ## @param persistence.size PVC Storage Request
+  ##
   size: 20Gi
+  ## @param persistence.selector Selector to match an existing Persistent Volume (this value is evaluated as a template)
+  ## selector:
+  ##   matchLabels:
+  ##     app: my-app
+  ##
   selector: {}
 
-## Docs: https://github.com/neo4j/helm-charts
+## @section Neo4J
+##
 neo4j:
+  ## @param neo4j.enabled Enable or disable Kubernetes database
+  ##
   enabled: false
-  values: {}
+  ## @param neo4j.values Values for metadata deployment
+  ## Docs: https://github.com/neo4j/helm-charts
+  ##
+  values: []
 
-## Docs: https://github.com/bitnami/charts/tree/main/bitnami/redis
+## @section Redis
+##
 redis:
+  ## @param redis.enabled Enable or disable Kubernetes database
+  ##
   enabled: false
-  values: {}
+  ## @param redis.values Values for metadata deployment
+  ## Docs: https://github.com/bitnami/charts/tree/main/bitnami/redis
+  ##
+  values: []
 
-## Docs: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/README.md
+## @section Metadata - Postgres
+##
 metadata:
+  ## @param metadata.enabled Enable or disable Kubernetes database
+  ##
   enabled: false
-  values: {}
+  ## @param metadata.values Values for metadata deployment
+  ## Docs: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/README.md
+  ##
+  values: []
