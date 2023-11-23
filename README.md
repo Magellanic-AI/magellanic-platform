@@ -2,19 +2,35 @@
 
 Zero Trust Machine Identity and Access Control with Configuration Management and MultiCloud Access Control.
 
-[Drop us the message](https://www.linkedin.com/company/magellanic), [email](mailto:contact@magellanic.ai) or [visit our website](www.magellanic.ai).
+[Drop us the message](https://www.linkedin.com/company/magellanic), [email](mailto:contact@magellanic.ai) 
+or [visit our website](https://www.magellanic.ai).
 
 ## Image
+
+Authenticate to Magellanic-provided image registry and choose Docker Compose or Helm deployment.
 
 ## Docker Compose
 
 ### Usage
 
+_Note: Replace REGISTRY_URL with provided URL from Magellanic._
+
+Go to docker-compose directory and run:
+
 ```bash
-MAGELLANIC_IMAGE_REGISTRY=REGISTRY_URL docker compose up -d
+MAGELLANIC_IMAGE_REGISTRY=REGISTRY_URL make run
 ```
 
+Then you can go to [Magellanic Admin](http://127.0.0.1:3001) and login with the following credentials:
+
+- username: admin@magellanic.ai
+- password: M$gellanic$dm!n9632
+
+Then you create your new organization and you'll be redirected to [Magellanic Panel](http://127.0.0.1:3000).
+
 ### Configuration
+
+Go to _docker-compose/docker-compose.yml_ file and modify key called _x-common-variables_.
 
 ## Helm
 
