@@ -15,9 +15,18 @@ Authenticate to Magellanic-provided image registry and choose Docker Compose or 
 
 _Note: Replace REGISTRY_URL with provided URL from Magellanic._
 
+Go to docker-compose directory and run:
+
 ```bash
-MAGELLANIC_IMAGE_REGISTRY=REGISTRY_URL docker compose up -d
+MAGELLANIC_IMAGE_REGISTRY=REGISTRY_URL make run
 ```
+
+Then you can go to [Magellanic Admin](http://127.0.0.1:3001) and login with the following credentials:
+
+- username: admin@magellanic.ai
+- password: M$gellanic$dm!n9632
+
+Then you create your new organization and you'll be redirected to [Magellanic Panel](http://127.0.0.1:3000).
 
 ### Configuration
 

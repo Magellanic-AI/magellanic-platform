@@ -50,7 +50,7 @@ services:
       - magellanic
 
   magellanic-core:
-    image: ${MAGELLANIC_IMAGE_REGISTRY}/magellanic-backend:af867e58
+    image: ${MAGELLANIC_IMAGE_REGISTRY}/magellanic-backend:64d54caf
     container_name: magellanic-core
     restart: always
     depends_on:
@@ -94,7 +94,7 @@ services:
       - magellanic
 
   frontend:
-    image: ${MAGELLANIC_IMAGE_REGISTRY}/magellanic-frontend:a13a2b78
+    image: ${MAGELLANIC_IMAGE_REGISTRY}/magellanic-frontend:60409570
     container_name: magellanic-frontend
     restart: always
     environment:

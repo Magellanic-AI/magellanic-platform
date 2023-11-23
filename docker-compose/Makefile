@@ -8,8 +8,10 @@ help:  ## Display this help
 build:  ## Pull all containers
 	docker compose pull
 
-run:  ## Run all services and apps
+start:  ## Run all services and apps
 	docker compose up -d
+	bash ./health.sh
+	bash ./script.sh
 
 stop:  ## Stop all services and apps
 	docker compose down
